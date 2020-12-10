@@ -1,11 +1,12 @@
+import asyncio
 import logging
 import random
 import typing
 
 import aiohttp
-import uvicorn
 from aiomisc.log import LogFormat, basic_config
 from fastapi import FastAPI, Response, BackgroundTasks
+from uvicorn import Config, Server
 
 from ping_model import PingModel
 from settings import Settings, AppMode
@@ -14,14 +15,15 @@ settings = Settings()
 basic_config(settings.log_level, LogFormat.stream, buffered=False)
 logger = logging.getLogger(__name__)
 
-# session = aiohttp.ClientSession()
+loop = asyncio.get_event_loop()
+session = aiohttp.ClientSession(loop=loop)
 app = FastAPI()
 
 
-# @app.on_event("shutdown")
-# async def shutdown_event():
-#     await session.close()
-#     logger.info('Stop server')
+@app.on_event("shutdown")
+async def shutdown_event():
+    await session.close()
+    logger.info('Stop server')
 
 
 PingTransformer = typing.Callable[[PingModel], None]
@@ -50,9 +52,8 @@ async def send_ping(ping: PingModel) -> None:
     ping_transformer(ping)
     ping_json = ping.dict()
     logger.debug(f'Send request with ping {ping_json}')
-    async with aiohttp.ClientSession() as session:
-        async with session.post(settings.ping_url, json=ping.dict()) as response:
-            logger.info(f'Response status {response.status}')
+    async with session.post(settings.ping_url, json=ping.dict()) as response:
+        logger.info(f'Response status {response.status}')
 
 
 def is_invalid_request() -> bool:
@@ -72,4 +73,6 @@ async def ping_handler(ping: PingModel, response: Response, background_tasks: Ba
 
 if __name__ == "__main__":
     logger.info(f'Run server with settings {settings.json()}')
-    uvicorn.run(app, host=settings.host, port=settings.port)
+    config = Config(host=settings.host, port=settings.port, app=app, loop=loop)
+    server = Server(config)
+    loop.run_until_complete(server.serve())
