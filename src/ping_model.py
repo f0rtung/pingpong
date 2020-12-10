@@ -12,4 +12,4 @@ class PingModel(BaseModel):
 
 
 def is_valid_ping(_: PingModel) -> bool:
-    return random.randint(0, 100) % 21 == 0
+    return random.randint(0, 10) % 3 == 0
