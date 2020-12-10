@@ -7,7 +7,7 @@ import uvicorn
 from aiomisc.log import LogFormat, basic_config
 from fastapi import FastAPI, Response, BackgroundTasks
 
-from models.ping_model import PingModel
+from ping_model import PingModel
 from settings import Settings, AppMode
 
 settings = Settings()
