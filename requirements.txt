@@ -1,5 +1,5 @@
-fastapi
-uvicorn
-pydantic
-aiohttp
-aiomisc
+fastapi==0.62.0
+uvicorn==0.13.0
+pydantic==1.7.3
+aiohttp==3.7.3
+aiomisc==11.1.0
