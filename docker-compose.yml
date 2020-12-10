@@ -2,7 +2,7 @@ version: "3"
 
 services:
   digits_service:
-    build: ./
+    build: .
     environment:
       - port=8081
       - ping_url=http://avg_max_min_service:8082/ping
@@ -11,7 +11,7 @@ services:
     ports:
       - "8081:8081"
   avg_max_min_service:
-    build: ./
+    build: .
     environment:
       - port=8082
       - ping_url=http://digits_service:8081/ping
