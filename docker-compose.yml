@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  digits_service:
+    build: ./
+    environment:
+      - port=8081
+      - ping_url=http://avg_max_min_service:8082/ping
+      - mode_str=digits
+      - log_level_str=debug
+    ports:
+      - "8081:8081"
+    networks:
+      - net
+  avg_max_min_service:
+    build: ./
+    environment:
+      - port=8082
+      - ping_url=http://digits_service:8081/ping
+      - mode_str=avg_max_min
+      - log_level_str=debug
+    ports:
+      - "8082:8082"
+    networks:
+      - net
+networks:
+  net:
+    driver: "bridge"
