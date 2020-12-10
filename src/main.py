@@ -7,7 +7,7 @@ from aiomisc.log import LogFormat, basic_config
 from fastapi import FastAPI, Response, BackgroundTasks
 from uvicorn import Config, Server
 
-from ping_model import PingModel, is_valid_ping
+from ping_model import PingModelIn, is_valid_ping
 from ping_transformer import make_ping_transformer, PingTransformerFn
 from settings import Settings
 
@@ -16,7 +16,7 @@ basic_config(settings.log_level, LogFormat.stream, buffered=False)
 logger = logging.getLogger(__name__)
 
 
-async def send_ping(s: aiohttp.ClientSession, ping: PingModel) -> None:
+async def send_ping(s: aiohttp.ClientSession, ping: PingModelIn) -> None:
     ping_json = ping.dict()
     logger.debug(f'Send request with ping {ping_json}')
     async with s.post(settings.ping_url, json=ping_json) as response:
@@ -26,7 +26,7 @@ async def send_ping(s: aiohttp.ClientSession, ping: PingModel) -> None:
 async def ping_handler(
         s: aiohttp.ClientSession,
         ping_transformer_fn: PingTransformerFn,
-        ping: PingModel,
+        ping: PingModelIn,
         response: Response,
         background_tasks: BackgroundTasks):
     logger.info(f'Receive ping request {ping.json()}')
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     ping_transformer = make_ping_transformer(settings.mode)
     ping_handler_fn = functools.partial(ping_handler, session, ping_transformer)
-    app.post("/ping")(ping_handler_fn)
+    app.post("/ping", responses={400: {'description': 'Invalid request'}})(ping_handler_fn)
 
     logger.info(f'Run server with settings {settings.json()}')
     config = Config(host=settings.host, port=settings.port, app=app, loop=loop)
