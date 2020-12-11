@@ -7,7 +7,7 @@ from aiomisc.log import LogFormat, basic_config
 from fastapi import FastAPI, BackgroundTasks, HTTPException, status
 from uvicorn import Config, Server
 
-from ping_model import PingModelIn, is_valid_ping
+from ping_model import PingModelIn, is_invalid_ping
 from ping_transformer import make_ping_transformer, PingTransformerFn
 from settings import Settings
 
@@ -32,12 +32,11 @@ async def ping_handler(
         ping: PingModelIn,
         background_tasks: BackgroundTasks):
     logger.info(f'Receive ping request {ping.json()}')
-    if is_valid_ping(ping):
+    if is_invalid_ping(ping):
         logger.error('Invalid ping request')
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invalid ping request')
-    else:
-        logger.info('Add send_ping background_tasks')
-        background_tasks.add_task(send_ping, s, ping_transformer_fn(ping))
+    logger.info('Add send_ping background task')
+    background_tasks.add_task(send_ping, s, ping_transformer_fn(ping))
 
 
 if __name__ == "__main__":

@@ -11,5 +11,5 @@ class PingModelIn(BaseModel):
     min: typing.Optional[int]
 
 
-def is_valid_ping(_: PingModelIn) -> bool:
+def is_invalid_ping(_: PingModelIn) -> bool:
     return random.randint(0, 10) % 3 == 0
