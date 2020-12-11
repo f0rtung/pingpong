@@ -4,7 +4,7 @@ import logging
 
 import aiohttp
 from aiomisc.log import LogFormat, basic_config
-from fastapi import FastAPI, Response, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, HTTPException, status
 from uvicorn import Config, Server
 
 from ping_model import PingModelIn, is_valid_ping
@@ -27,12 +27,11 @@ async def ping_handler(
         s: aiohttp.ClientSession,
         ping_transformer_fn: PingTransformerFn,
         ping: PingModelIn,
-        response: Response,
         background_tasks: BackgroundTasks):
     logger.info(f'Receive ping request {ping.json()}')
     if is_valid_ping(ping):
         logger.error('Invalid ping request')
-        response.status_code = 400
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invalid ping request')
     else:
         logger.info('Add send_ping background_tasks')
         background_tasks.add_task(send_ping, s, ping_transformer_fn(ping))
