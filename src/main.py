@@ -19,8 +19,11 @@ logger = logging.getLogger(__name__)
 async def send_ping(s: aiohttp.ClientSession, ping: PingModelIn) -> None:
     ping_json = ping.dict()
     logger.debug(f'Send request with ping {ping_json}')
-    async with s.post(settings.ping_url, json=ping_json) as response:
-        logger.info(f'Response status {response.status}')
+    try:
+        async with s.post(settings.ping_url, json=ping_json) as response:
+            logger.info(f'Response status {response.status}')
+    except Exception as ex:
+        logger.error(f'Can not make request, error: {ex}')
 
 
 async def ping_handler(
